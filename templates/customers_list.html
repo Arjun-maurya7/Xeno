@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customers - Xeno CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">Xeno CRM</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/customers" class="nav-link active">Customers</a>
+        <a href="/orders" class="nav-link">Orders</a>
+        <a href="/segments" class="nav-link">Segments</a>
+        <a href="/campaigns" class="nav-link">Campaigns</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/ai-segment" class="nav-link">AI Segment</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header-section">
+        <h1>Customers</h1>
+        <a href="/customers/add" class="btn">Add Customer</a>
+      </div>
+      
+      {% if customers %}
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>City</th>
+            <th>Total Spend</th>
+            <th>Last Purchase</th>
+            <th>Total Orders</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in customers %}
+          <tr>
+            <td>
+              <a href="/customers/{{ c.id }}" class="customer-link"><strong>{{ c.name }}</strong></a><br>
+              <small style="color: var(--text-muted);">{{ c.email }} &bull; {{ c.phone }}</small>
+            </td>
+            <td>{{ c.city }}</td>
+            <td>${{ "{:.2f}".format(c.total_spend) }}</td>
+            <td>{{ c.last_purchase }}</td>
+            <td>{{ c.total_orders }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <h3>No customers yet</h3>
+        <p>Start managing your database by registering your first customer.</p>
+        <a href="/customers/add" class="btn">Add Customer</a>
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>

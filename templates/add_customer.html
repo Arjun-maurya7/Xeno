@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add Customer - Xeno CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">Xeno CRM</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/customers" class="nav-link active">Customers</a>
+        <a href="/orders" class="nav-link">Orders</a>
+        <a href="/segments" class="nav-link">Segments</a>
+        <a href="/campaigns" class="nav-link">Campaigns</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/ai-segment" class="nav-link">AI Segment</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header-section">
+        <h1>Add Customer</h1>
+      </div>
+      
+      <div class="card">
+        <form method="post" action="/customers/add">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="e.g. Arjun Maurya" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="e.g. arjun@example.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number (10 digits)</label>
+            <input type="text" id="phone" name="phone" pattern="\d{10}" placeholder="e.g. 7054267380" required />
+          </div>
+
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="e.g. Pune" required />
+          </div>
+
+          <button type="submit" class="btn">Submit Customer</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

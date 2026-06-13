@@ -1,62 +1,44 @@
-from fastapi import FastAPI, HTTPException, Depends
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, session
-from models.customer import Customer
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+from database import engine, Base
+from sqlalchemy import text
+from routes import customer, order, segment, campaign, analytics, ai, dashboard
+from dotenv import load_dotenv
 
-app = FastAPI()
+load_dotenv()
 
-Customers = [
-    Customer(
-        id=1,
-        name="Arjun",
-        email="arjunmaurya9023@gmail.com",
-        phone="7054267380",
-        city="Pune"
-    )
-]
+app = FastAPI(title="Xeno CRM")
 
-# Database Setup
-engine = create_engine("sqlite:///users.db")
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-@app.post("/customer")
-async def create_customer(customer: Customer):
-    Customers.append(customer)
+# Create tables
+Base.metadata.create_all(bind=engine)
 
-    return {
-        "message": "Customer created",
-        "data": customer.model_dump()
-    }
+# Database Schema migrations/updates for Campaign metrics
+with engine.connect() as conn:
+    try:
+        cursor = conn.execute(text("PRAGMA table_info(campaigns)"))
+        columns = [row[1] for row in cursor.fetchall()]
+        if columns and "sent" not in columns:
+            # Under SQLAlchemy 2.0, we execute the migrations and commit them
+            conn.execute(text("ALTER TABLE campaigns ADD COLUMN sent INTEGER DEFAULT 120"))
+            conn.execute(text("ALTER TABLE campaigns ADD COLUMN delivered INTEGER DEFAULT 110"))
+            conn.execute(text("ALTER TABLE campaigns ADD COLUMN opened INTEGER DEFAULT 85"))
+            conn.execute(text("ALTER TABLE campaigns ADD COLUMN clicked INTEGER DEFAULT 38"))
+            try:
+                conn.commit()
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"Migration error: {e}")
 
-@app.get("/customer")
-def get_customers():
-    return Customers
-
-@app.get("/customer/{id}")
-def get_customer_by_id(id: int):
-    for customer in Customers:
-        if customer.id == id:
-            return customer
-
-    return {"message": "Customer does not exist"}
-
-@app.put("/customer/{id}")
-def update_customer(id: int, customer: Customer):
-    for i in range(len(Customers)):
-        if Customers[i].id == id:
-            Customers[i] = customer
-            return {
-                "message": "Customer information updated successfully",
-                "data": customer
-            }
-
-    return {"message": "Customer not found"}
-    
-@app.delete("/customer/{id}")
-def delete_customer(id: int):
-    for i in range(len(Customers)):
-        if Customers[i].id == id:
-            del Customers[i]
-            return {"message": "Customer deleted successfully"}
-
-    return {"message": "Customer not found"}
+# Register modular routers
+app.include_router(dashboard.router)
+app.include_router(customer.router)
+app.include_router(order.router)
+app.include_router(segment.router)
+app.include_router(campaign.router)
+app.include_router(analytics.router)
+app.include_router(ai.router)

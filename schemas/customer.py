@@ -1,9 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Annotated
 
-class Customer(BaseModel):
-    id: int
-
+class CustomerBase(BaseModel):
     name: Annotated[
         str,
         Field(
@@ -42,9 +40,20 @@ class Customer(BaseModel):
             example="Pune"
         )
     ]
+
     @field_validator("city")
+    @classmethod
     def validate_city(cls, value):
         if not value.replace(" ", "").isalpha():
             raise ValueError("City name should contain only letters")
         return value
-    
+
+class CustomerCreate(CustomerBase):
+    pass
+
+class Customer(CustomerBase):
+    id: int
+
+    model_config = {
+        "from_attributes": True
+    }

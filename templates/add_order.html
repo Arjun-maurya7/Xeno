@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add Order - Xeno CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">Xeno CRM</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/customers" class="nav-link">Customers</a>
+        <a href="/orders" class="nav-link active">Orders</a>
+        <a href="/segments" class="nav-link">Segments</a>
+        <a href="/campaigns" class="nav-link">Campaigns</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/ai-segment" class="nav-link">AI Segment</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header-section">
+        <h1>Add Order</h1>
+      </div>
+      
+      <div class="card">
+        <form method="post" action="/orders/add">
+          <div class="form-group">
+            <label for="customer_id">Select Customer</label>
+            <select id="customer_id" name="customer_id" required>
+              <option value="" disabled selected>Choose a customer...</option>
+              {% for c in customers %}
+                <option value="{{ c.id }}">{{ c.name }} ({{ c.email }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="amount">Order Amount ($)</label>
+            <input type="number" id="amount" name="amount" step="0.01" min="0" placeholder="e.g. 99.99" required />
+          </div>
+
+          <div class="form-group">
+            <label for="order_date">Order Date</label>
+            <input type="date" id="order_date" name="order_date" required />
+          </div>
+
+          <button type="submit" class="btn">Submit Order</button>
+        </form>
+      </div>
+    </div>
+    
+    <script>
+      // Automatically set the order date to today's date
+      document.getElementById('order_date').valueAsDate = new Date();
+    </script>
+  </body>
+</html>

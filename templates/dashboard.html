@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard - Xeno CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">Xeno CRM</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link active">Dashboard</a>
+        <a href="/customers" class="nav-link">Customers</a>
+        <a href="/orders" class="nav-link">Orders</a>
+        <a href="/segments" class="nav-link">Segments</a>
+        <a href="/campaigns" class="nav-link">Campaigns</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/ai-segment" class="nav-link">AI Segment</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header-section">
+        <h1>Dashboard Overview</h1>
+        <p style="color: var(--text-muted);">Real-time business performance and customer insight analytics</p>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-val text-success">${{ "{:.2f}".format(total_revenue) }}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Customers</div>
+          <div class="kpi-val text-primary">{{ total_customers }}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Average Order Value</div>
+          <div class="kpi-val text-warning">${{ "{:.2f}".format(aov) }}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active Campaigns</div>
+          <div class="kpi-val text-purple">{{ active_campaigns }}</div>
+        </div>
+      </div>
+
+      <!-- Recent Orders & Top Spenders -->
+      <div class="dashboard-grid">
+        <!-- Recent Orders -->
+        <div>
+          <div class="section-title-wrapper">
+            <h2>Recent Orders</h2>
+            <a href="/orders" class="view-all-link">View All</a>
+          </div>
+          {% if recent_orders %}
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Date</th>
+                <th class="text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in recent_orders %}
+              <tr>
+                <td>
+                  {% if order.customer %}
+                    <a href="/customers/{{ order.customer.id }}" class="customer-link">{{ order.customer.name }}</a>
+                  {% else %}
+                    <span class="text-muted italic">Unknown</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted text-sm">{{ order.order_date }}</td>
+                <td class="text-right text-success font-semibold">${{ "{:.2f}".format(order.amount) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="empty-state-dashed">
+            No orders found.
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Top Spenders -->
+        <div>
+          <div class="section-title-wrapper">
+            <h2>Top Spenders</h2>
+            <a href="/customers" class="view-all-link">View All</a>
+          </div>
+          {% if top_spenders %}
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Orders</th>
+                <th class="text-right">Total Spent</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for spender in top_spenders %}
+              <tr>
+                <td>
+                  <a href="/customers/{{ spender.id }}" class="customer-link">{{ spender.name }}</a><br>
+                  <small class="text-muted">{{ spender.city }}</small>
+                </td>
+                <td class="text-muted">{{ spender.total_orders }} orders</td>
+                <td class="text-right text-success font-bold">${{ "{:.2f}".format(spender.total_spend) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="empty-state-dashed">
+            No customers found.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Orders - Xeno CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">Xeno CRM</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/customers" class="nav-link">Customers</a>
+        <a href="/orders" class="nav-link active">Orders</a>
+        <a href="/segments" class="nav-link">Segments</a>
+        <a href="/campaigns" class="nav-link">Campaigns</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/ai-segment" class="nav-link">AI Segment</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header-section">
+        <h1>Orders</h1>
+        <a href="/orders/add" class="btn">Add Order</a>
+      </div>
+      
+      {% if orders %}
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Amount</th>
+            <th>Order Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+          <tr>
+            <td>#{{ o.id }}</td>
+            <td>
+              {% if o.customer %}
+                <a href="/customers/{{ o.customer.id }}" class="customer-link"><strong>{{ o.customer.name }}</strong></a><br>
+                <small style="color: var(--text-muted);">{{ o.customer.email }}</small>
+              {% else %}
+                <span style="color: red;">Unknown Customer (ID: {{ o.customer_id }})</span>
+              {% endif %}
+            </td>
+            <td>${{ "{:.2f}".format(o.amount) }}</td>
+            <td>{{ o.order_date.strftime('%Y-%m-%d') if o.order_date.strftime is defined else o.order_date }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <h3>No orders yet</h3>
+        <p>Start tracking sales by registering your first order.</p>
+        <a href="/orders/add" class="btn">Add Order</a>
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>

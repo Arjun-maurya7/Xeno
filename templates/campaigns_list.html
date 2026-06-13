@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Campaigns - Xeno CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">Xeno CRM</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/customers" class="nav-link">Customers</a>
+        <a href="/orders" class="nav-link">Orders</a>
+        <a href="/segments" class="nav-link">Segments</a>
+        <a href="/campaigns" class="nav-link active">Campaigns</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/ai-segment" class="nav-link">AI Segment</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header-section">
+        <h1>Campaigns</h1>
+        <a href="/campaigns/create" class="btn">Create Campaign</a>
+      </div>
+
+      {% if campaigns %}
+      <table>
+        <thead>
+          <tr>
+            <th>Campaign Name</th>
+            <th>Target Audience</th>
+            <th>Channel</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for campaign in campaigns %}
+          <tr>
+            <td><strong>{{ campaign.name }}</strong></td>
+            <td>{{ campaign.audience }}</td>
+            <td>
+              {% if campaign.channel.lower() == 'email' %}
+              <span class="channel-badge channel-email">Email</span>
+              {% elif campaign.channel.lower() == 'sms' %}
+              <span class="channel-badge channel-sms">SMS</span>
+              {% elif campaign.channel.lower() == 'whatsapp' %}
+              <span class="channel-badge channel-whatsapp">WhatsApp</span>
+              {% else %}
+              <span class="channel-badge">{{ campaign.channel }}</span>
+              {% endif %}
+            </td>
+            <td>{{ campaign.message }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <p>No campaigns have been created yet.</p>
+        <a href="/campaigns/create" class="btn">Create Your First Campaign</a>
+      </div>
+      {% endif %}
+    </div>
+  </body>
+</html>

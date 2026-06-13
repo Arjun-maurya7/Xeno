@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Campaign Analytics - Xeno CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">Xeno CRM</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/customers" class="nav-link">Customers</a>
+        <a href="/orders" class="nav-link">Orders</a>
+        <a href="/segments" class="nav-link">Segments</a>
+        <a href="/campaigns" class="nav-link">Campaigns</a>
+        <a href="/analytics" class="nav-link active">Analytics</a>
+        <a href="/ai-segment" class="nav-link">AI Segment</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header-section">
+        <h1>Campaign Analytics</h1>
+      </div>
+
+      <div class="grid-layout">
+        {% if campaigns %}
+          {% for campaign in campaigns %}
+            <div class="campaign-card">
+              <div>
+                <div class="campaign-header">
+                  <h2 class="campaign-name">{{ campaign.name }}</h2>
+                  <span class="audience-badge">{{ campaign.audience }}</span>
+                </div>
+                
+                <div class="metrics-grid">
+                  <div class="metric-pill">
+                    <div class="metric-label">Sent</div>
+                    <div class="metric-value">{{ campaign.sent }}</div>
+                  </div>
+                  
+                  <div class="metric-pill">
+                    <div class="metric-label">Delivered</div>
+                    <div class="metric-value">{{ campaign.delivered }}</div>
+                  </div>
+                  
+                  <div class="metric-pill">
+                    <div class="metric-label">Opened</div>
+                    <div class="metric-value">{{ campaign.opened }}</div>
+                  </div>
+                  
+                  <div class="metric-pill">
+                    <div class="metric-label">Clicked</div>
+                    <div class="metric-value">{{ campaign.clicked }}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="campaign-footer">
+                <span class="footer-label">Click-Through Rate (CTR)</span>
+                {% if campaign.opened and campaign.opened > 0 %}
+                  {% set ctr = (campaign.clicked / campaign.opened) * 100 %}
+                  <span class="ctr-value">{{ "{:.1f}".format(ctr) }}%</span>
+                {% else %}
+                  <span class="ctr-value">0.0%</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <p>No campaigns found to analyze.</p>
+            <a href="/campaigns/create" class="btn">Create Campaign</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>
