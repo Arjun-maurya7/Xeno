@@ -12,7 +12,7 @@ Xeno CRM follows a clean, modular architecture separating the Presentation Layer
 CRM/
 │
 ├── app.py                      # Application entry point & service startup
-├── database.py                 # SQLite database engine & session pool setup
+├── database.py                      # Database engine & session pool setup (SQLite / PostgreSQL)
 ├── model.py                    # Unified database models (SQLAlchemy ORM)
 ├── requirements.txt            # Python environment dependencies
 ├── .env                        # Environment variables (GEMINI_API_KEY)
@@ -54,19 +54,27 @@ CRM/
 
 ## 🗄️ 2. Data Access Layer (Database & ORM Models)
 
-Xeno CRM uses **SQLite** as its relational database and **SQLAlchemy** as the Object Relational Mapper (ORM). Models are configured in `model.py` and derive from a shared declarative `Base` declared in `database.py`.
+Xeno CRM supports **SQLite** (for local development) and **PostgreSQL** (for production, e.g., deployed via Neon Serverless Postgres on Render). It uses **SQLAlchemy** as the Object Relational Mapper (ORM). Models are configured in `model.py` and derive from a shared declarative `Base` declared in `database.py`.
 
 ### Database Schema Entity Relationship (ER) Diagram
 - **Customer (1) ── (N) Order**: One customer can place multiple orders. Declared via a foreign key relationship with cascading deletes (`ondelete="CASCADE"`).
-- **Campaign (Standalone)**: Stores campaign information, including synthetic tracking analytics (sent, delivered, opened, clicked) for CTR analysis.
+- **Campaign (Standalone)**: Stores campaign information, including synthetic tracking analytics (sent, delivered, opened, clicked, conversions, revenue) for campaign performance and attribution.
 
 ```python
 # database.py
-from sqlalchemy import create_base
-from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-DATABASE_URL = "sqlite:///./crm.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./crm.db")
+
+# Use SQLite specific connect args only when running SQLite
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -184,10 +192,10 @@ Here are the key questions technical interviewers might ask you about this codeb
 
 ### Q4: How is database migration handled in this project?
 *   **Answer**:
-    "FastAPI creates tables defined in `model.py` using `Base.metadata.create_all(bind=engine)` at startup. For updating existing tables (like adding campaign metrics tracking columns), I implemented a migration script block using SQLAlchemy raw SQL execution:
-    1. Connect to the engine and run a SQLite table information check: `PRAGMA table_info(campaigns)`.
-    2. Fetch the column list and check if our metrics columns (sent, delivered, opened, clicked) are present.
-    3. If they are absent, run `ALTER TABLE campaigns ADD COLUMN ...` statements, and issue a connection transaction commit. This ensures database schema updates run safely at startup without losing existing data."
+    "FastAPI creates tables defined in `model.py` using `Base.metadata.create_all(bind=engine)` at startup. For updating existing tables (like adding campaign metrics, conversions, and revenue tracking columns), I implemented a database-independent migration script block using SQLAlchemy reflection:
+    1. Connect to the engine and instantiate SQLAlchemy's `inspect(engine)`.
+    2. Fetch the columns lists using `inspector.get_columns("campaigns")` and `inspector.get_columns("orders")`.
+    3. Compare the current schema columns to our required columns, and if any are absent, execute standard `ALTER TABLE ... ADD COLUMN ...` queries. This ensures database schema updates run safely at startup on both SQLite (locally) and PostgreSQL (in production) without dialect-specific syntax errors."
 
 ### Q5: What is the purpose of Jinja2Templates, and how do you avoid circular imports in a modular structure?
 *   **Answer**:

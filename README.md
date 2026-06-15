@@ -1,6 +1,6 @@
 # Xeno CRM - AI-Native Mini CRM
 
-An AI-native CRM built using FastAPI, SQLite, and Google Gemini. Designed to help retail brands intelligently segment customer profiles, generate personalized marketing messages, track communication delivery lifecycles, and attribute conversions.
+An AI-native CRM built using FastAPI, SQLite (for local development) / Neon Serverless PostgreSQL (for production), and Google Gemini. Designed to help retail brands intelligently segment customer profiles, generate personalized marketing messages, track communication delivery lifecycles, and attribute conversions.
 
 This project is built to satisfy the requirements of the **Xeno Engineering Take-Home Assignment**.
 
@@ -28,7 +28,7 @@ This project is built to satisfy the requirements of the **Xeno Engineering Take
 
 ```
 ├── app.py                     # Main application entry point & setup
-├── database.py                # SQLAlchemy DB engine & session configuration
+├── database.py                # Database engine & session configuration (loads environment url)
 ├── model.py                   # SQLAlchemy schema models (Customer, Order, Campaign, CommunicationLog)
 ├── seed.py                    # DB seed script for mock data
 ├── requirements.txt           # Python application dependencies
@@ -67,10 +67,12 @@ pip install -r requirements.txt
 Create a `.env` file in the root directory:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
+DATABASE_URL=sqlite:///./crm.db
 ```
+*(Leave `DATABASE_URL` as SQLite for local dev, or supply a PostgreSQL connection string to point to your cloud database).*
 
 ### 4. Database Setup
-Initialize and seed the SQLite database with testing data:
+Initialize and seed the database with testing data:
 ```bash
 python seed.py
 ```
@@ -89,7 +91,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your web browser.
 ```mermaid
 graph TD
     A[Marketer / UI] -->|Launch Campaign| B[FastAPI Backend /routes/campaign]
-    B -->|Initialize Logs| C[(SQLite Database)]
+    B -->|Initialize Logs| C[(Database: SQLite / PostgreSQL)]
     B -->|Spawn Background Task| D[Channel Service /services/channel_service]
     D -->|Simulate Lifecycle Event| E[HTTP POST Webhook /webhook/receipt]
     E -->|Update CommunicationLog| C
