@@ -14,7 +14,7 @@ router = APIRouter()
 @router.get("/orders/add")
 def add_order_form(request: Request, db: Session = Depends(get_db)):
     customers = db.query(DBCustomer).all()
-    return templates.TemplateResponse("add_order.html", {"request": request, "customers": customers})
+    return templates.TemplateResponse(request=request, name="add_order.html", context={"customers": customers})
 
 @router.post("/orders/add")
 def handle_add_order(
@@ -31,7 +31,7 @@ def handle_add_order(
 @router.get("/orders")
 def orders_list(request: Request, db: Session = Depends(get_db)):
     orders = db.query(DBOrder).order_by(DBOrder.id.desc()).all()
-    return templates.TemplateResponse("orders_list.html", {"request": request, "orders": orders})
+    return templates.TemplateResponse(request=request, name="orders_list.html", context={"orders": orders})
 
 @router.get("/order/{id}", response_model=Order)
 def get_order_by_id(id: int, db: Session = Depends(get_db)):
@@ -48,8 +48,9 @@ def get_orders_by_customer(id: int, db: Session = Depends(get_db)):
 @router.get("/orders/import")
 def import_orders_page(request: Request):
     return templates.TemplateResponse(
-        "import_orders.html",
-        {"request": request, "success": None, "skipped": None, "error": None}
+        request=request,
+        name="import_orders.html",
+        context={"success": None, "skipped": None, "error": None}
     )
 
 @router.post("/orders/import")
@@ -59,10 +60,11 @@ async def handle_import_orders(
     db: Session = Depends(get_db)
 ):
     if not file.filename.endswith(".csv"):
-        return templates.TemplateResponse("import_orders.html", {
-            "request": request, "success": None, "skipped": None,
-            "error": "Invalid file type. Please upload a .csv file."
-        })
+        return templates.TemplateResponse(
+            request=request,
+            name="import_orders.html",
+            context={"success": None, "skipped": None, "error": "Invalid file type. Please upload a .csv file."}
+        )
     try:
         content = await file.read()
         text_data = content.decode("utf-8")
@@ -70,10 +72,11 @@ async def handle_import_orders(
 
         required_cols = {"customer_email", "amount", "order_date"}
         if not required_cols.issubset(set(reader.fieldnames or [])):
-            return templates.TemplateResponse("import_orders.html", {
-                "request": request, "success": None, "skipped": None,
-                "error": "CSV must have columns: customer_email, amount, order_date"
-            })
+            return templates.TemplateResponse(
+                request=request,
+                name="import_orders.html",
+                context={"success": None, "skipped": None, "error": "CSV must have columns: customer_email, amount, order_date"}
+            )
 
         success_count = 0
         skipped_count = 0
@@ -103,14 +106,18 @@ async def handle_import_orders(
             success_count += 1
 
         db.commit()
-        return templates.TemplateResponse("import_orders.html", {
-            "request": request,
-            "success": f"Successfully imported {success_count} order(s).",
-            "skipped": f"Skipped {skipped_count} row(s) — unknown email or bad format." if skipped_count else None,
-            "error": None
-        })
+        return templates.TemplateResponse(
+            request=request,
+            name="import_orders.html",
+            context={
+                "success": f"Successfully imported {success_count} order(s).",
+                "skipped": f"Skipped {skipped_count} row(s) — unknown email or bad format." if skipped_count else None,
+                "error": None
+            }
+        )
     except Exception as e:
-        return templates.TemplateResponse("import_orders.html", {
-            "request": request, "success": None, "skipped": None,
-            "error": f"Failed to parse CSV: {str(e)}"
-        })
+        return templates.TemplateResponse(
+            request=request,
+            name="import_orders.html",
+            context={"success": None, "skipped": None, "error": f"Failed to parse CSV: {str(e)}"}
+        )

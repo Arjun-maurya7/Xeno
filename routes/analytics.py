@@ -9,4 +9,4 @@ router = APIRouter()
 @router.get("/analytics")
 def analytics_page(request: Request, db: Session = Depends(get_db)):
     campaigns = db.query(DBCampaign).all()
-    return templates.TemplateResponse("analytics.html", {"request": request, "campaigns": campaigns})
+    return templates.TemplateResponse(request=request, name="analytics.html", context={"campaigns": campaigns})

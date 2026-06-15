@@ -20,7 +20,7 @@ def estimate_audience_size(db: Session, audience_str: str) -> int:
 # ── Campaign Create ───────────────────────────────────────────────────────────
 @router.get("/campaigns/create")
 def add_campaign_form(request: Request):
-    return templates.TemplateResponse("add_campaign.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="add_campaign.html")
 
 
 @router.post("/campaigns/create")
@@ -47,7 +47,7 @@ def handle_add_campaign(
 def campaigns_list(request: Request, db: Session = Depends(get_db)):
     campaigns = db.query(DBCampaign).order_by(DBCampaign.id.desc()).all()
     return templates.TemplateResponse(
-        "campaigns_list.html", {"request": request, "campaigns": campaigns}
+        request=request, name="campaigns_list.html", context={"campaigns": campaigns}
     )
 
 

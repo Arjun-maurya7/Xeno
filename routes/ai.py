@@ -10,9 +10,9 @@ router = APIRouter()
 @router.get("/ai-segment")
 def ai_segment_page(request: Request):
     return templates.TemplateResponse(
-        "ai_segment.html", 
-        {
-            "request": request, 
+        request=request,
+        name="ai_segment.html", 
+        context={
             "prompt": "", 
             "customers": [], 
             "parsed_filters": None,
@@ -24,9 +24,9 @@ def ai_segment_page(request: Request):
 def handle_ai_segment(request: Request, prompt: str = Form(...), db: Session = Depends(get_db)):
     if not get_api_key():
         return templates.TemplateResponse(
-            "ai_segment.html",
-            {
-                "request": request,
+            request=request,
+            name="ai_segment.html",
+            context={
                 "prompt": prompt,
                 "customers": [],
                 "parsed_filters": None,
@@ -38,9 +38,9 @@ def handle_ai_segment(request: Request, prompt: str = Form(...), db: Session = D
         filters = parse_segment_prompt(prompt)
     except Exception as e:
         return templates.TemplateResponse(
-            "ai_segment.html",
-            {
-                "request": request,
+            request=request,
+            name="ai_segment.html",
+            context={
                 "prompt": prompt,
                 "customers": [],
                 "parsed_filters": None,
@@ -56,9 +56,9 @@ def handle_ai_segment(request: Request, prompt: str = Form(...), db: Session = D
     )
         
     return templates.TemplateResponse(
-        "ai_segment.html",
-        {
-            "request": request,
+        request=request,
+        name="ai_segment.html",
+        context={
             "prompt": prompt,
             "customers": customers_data,
             "parsed_filters": filters,

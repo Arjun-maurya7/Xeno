@@ -53,9 +53,9 @@ def dashboard_page(request: Request, db: Session = Depends(get_db)):
         })
         
     return templates.TemplateResponse(
-        "dashboard.html",
-        {
-            "request": request,
+        request=request,
+        name="dashboard.html",
+        context={
             "total_customers": total_customers,
             "total_orders": total_orders,
             "total_revenue": total_revenue,

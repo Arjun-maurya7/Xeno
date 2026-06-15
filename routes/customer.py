@@ -24,7 +24,7 @@ async def create_customer(customer: CustomerCreate, db: Session = Depends(get_db
 
 @router.get("/customers/add")
 def add_customer_form(request: Request):
-    return templates.TemplateResponse("add_customer.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="add_customer.html")
 
 @router.post("/customers/add")
 def handle_add_customer(
@@ -51,7 +51,7 @@ def handle_add_customer(
 @router.get("/customers")
 def customers_list(request: Request, db: Session = Depends(get_db)):
     customers_data = get_segmented_customers(db)
-    return templates.TemplateResponse("customers_list.html", {"request": request, "customers": customers_data})
+    return templates.TemplateResponse(request=request, name="customers_list.html", context={"customers": customers_data})
 
 @router.get("/customer", response_model=list[Customer])
 def get_customers(db: Session = Depends(get_db)):
@@ -110,9 +110,9 @@ def customer_detail_page(id: int, request: Request, db: Session = Depends(get_db
     persona = generate_customer_persona(db_customer.name, db_customer.city, total_spend, total_orders, orders)
     
     return templates.TemplateResponse(
-        "customer_detail.html",
-        {
-            "request": request,
+        request=request,
+        name="customer_detail.html",
+        context={
             "customer": db_customer,
             "orders": orders,
             "total_spend": total_spend,
@@ -126,8 +126,9 @@ def customer_detail_page(id: int, request: Request, db: Session = Depends(get_db
 @router.get("/customers/import")
 def import_customers_page(request: Request):
     return templates.TemplateResponse(
-        "import_customers.html", 
-        {"request": request, "success": None, "skipped": None, "error": None}
+        request=request,
+        name="import_customers.html", 
+        context={"success": None, "skipped": None, "error": None}
     )
 
 @router.post("/customers/import")
@@ -138,8 +139,9 @@ async def handle_import_customers(
 ):
     if not file.filename.endswith('.csv'):
         return templates.TemplateResponse(
-            "import_customers.html",
-            {"request": request, "success": None, "skipped": None, "error": "Invalid file extension. Please upload a .csv file."}
+            request=request,
+            name="import_customers.html",
+            context={"success": None, "skipped": None, "error": "Invalid file extension. Please upload a .csv file."}
         )
     try:
         content = await file.read()
@@ -150,8 +152,9 @@ async def handle_import_customers(
         required_cols = {"name", "email", "phone", "city"}
         if not required_cols.issubset(set(reader.fieldnames or [])):
             return templates.TemplateResponse(
-                "import_customers.html",
-                {"request": request, "success": None, "skipped": None, "error": "CSV is missing one or more required columns: name, email, phone, city."}
+                request=request,
+                name="import_customers.html",
+                context={"success": None, "skipped": None, "error": "CSV is missing one or more required columns: name, email, phone, city."}
             )
         
         success_count = 0
@@ -177,9 +180,9 @@ async def handle_import_customers(
             
         db.commit()
         return templates.TemplateResponse(
-            "import_customers.html",
-            {
-                "request": request, 
+            request=request,
+            name="import_customers.html",
+            context={
                 "success": f"Successfully imported {success_count} customer(s).",
                 "skipped": f"Skipped {skipped_count} duplicate email(s)." if skipped_count > 0 else None,
                 "error": None
@@ -187,7 +190,8 @@ async def handle_import_customers(
         )
     except Exception as e:
         return templates.TemplateResponse(
-            "import_customers.html",
-            {"request": request, "success": None, "skipped": None, "error": f"Failed to parse CSV: {str(e)}"}
+            request=request,
+            name="import_customers.html",
+            context={"success": None, "skipped": None, "error": f"Failed to parse CSV: {str(e)}"}
         )
 

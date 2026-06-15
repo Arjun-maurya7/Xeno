@@ -9,9 +9,9 @@ router = APIRouter()
 @router.get("/segments")
 def segments_page(request: Request):
     return templates.TemplateResponse(
-        "segments.html",
-        {
-            "request": request,
+        request=request,
+        name="segments.html",
+        context={
             "customers": [],
             "min_spend": None,
             "inactive_days": None,
@@ -29,9 +29,9 @@ def generate_segment(
 ):
     customers_data = get_segmented_customers(db, min_spend=min_spend, inactive_days=inactive_days, city=city)
     return templates.TemplateResponse(
-        "segments.html",
-        {
-            "request": request,
+        request=request,
+        name="segments.html",
+        context={
             "customers": customers_data,
             "min_spend": min_spend,
             "inactive_days": inactive_days,

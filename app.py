@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from database import engine, Base
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 from routes import customer, order, segment, campaign, analytics, ai, dashboard, webhook
 
 app = FastAPI(title="Xeno CRM")
@@ -18,9 +18,10 @@ Base.metadata.create_all(bind=engine)
 # ── Database migrations: add any missing columns to campaigns & orders ────────
 with engine.connect() as conn:
     try:
+        inspector = inspect(engine)
+        
         # Migrate campaigns table
-        cursor = conn.execute(text("PRAGMA table_info(campaigns)"))
-        campaign_columns = [row[1] for row in cursor.fetchall()]
+        campaign_columns = [col["name"] for col in inspector.get_columns("campaigns")]
 
         campaign_migrations = {
             "sent":      "ALTER TABLE campaigns ADD COLUMN sent INTEGER DEFAULT 0",
@@ -38,8 +39,7 @@ with engine.connect() as conn:
                 conn.execute(text(sql))
 
         # Migrate orders table
-        cursor = conn.execute(text("PRAGMA table_info(orders)"))
-        order_columns = [row[1] for row in cursor.fetchall()]
+        order_columns = [col["name"] for col in inspector.get_columns("orders")]
         if "campaign_id" not in order_columns:
             conn.execute(text("ALTER TABLE orders ADD COLUMN campaign_id INTEGER REFERENCES campaigns(id) ON DELETE SET NULL"))
 
