@@ -58,17 +58,43 @@
                     <div class="metric-label">Clicked</div>
                     <div class="metric-value">{{ campaign.clicked }}</div>
                   </div>
+
+                  <div class="metric-pill">
+                    <div class="metric-label">Failed</div>
+                    <div class="metric-value">{{ campaign.failed }}</div>
+                  </div>
+
+                  <div class="metric-pill">
+                    <div class="metric-label">Conversions</div>
+                    <div class="metric-value">{{ campaign.conversions }}</div>
+                  </div>
+
+                  <div class="metric-pill" style="border-color: rgba(16,185,129,0.2); background: rgba(16,185,129,0.02);">
+                    <div class="metric-label" style="color: #10b981;">Revenue</div>
+                    <div class="metric-value" style="color: #10b981;">${{ "{:.2f}".format(campaign.revenue or 0.0) }}</div>
+                  </div>
                 </div>
               </div>
               
-              <div class="campaign-footer">
-                <span class="footer-label">Click-Through Rate (CTR)</span>
-                {% if campaign.opened and campaign.opened > 0 %}
-                  {% set ctr = (campaign.clicked / campaign.opened) * 100 %}
-                  <span class="ctr-value">{{ "{:.1f}".format(ctr) }}%</span>
-                {% else %}
-                  <span class="ctr-value">0.0%</span>
-                {% endif %}
+              <div class="campaign-footer" style="display: flex; flex-direction: column; gap: 0.5rem; align-items: stretch;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="footer-label">Click-Through Rate (CTR)</span>
+                  {% if campaign.opened and campaign.opened > 0 %}
+                    {% set ctr = (campaign.clicked / campaign.opened) * 100 %}
+                    <span class="ctr-value">{{ "{:.1f}".format(ctr) }}%</span>
+                  {% else %}
+                    <span class="ctr-value">0.0%</span>
+                  {% endif %}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 0.5rem; margin-top: 0.25rem;">
+                  <span class="footer-label">Conversion Rate (CVR)</span>
+                  {% if campaign.sent and campaign.sent > 0 %}
+                    {% set cvr = (campaign.conversions / campaign.sent) * 100 %}
+                    <span class="ctr-value" style="color: #10b981;">{{ "{:.1f}".format(cvr) }}%</span>
+                  {% else %}
+                    <span class="ctr-value" style="color: #10b981;">0.0%</span>
+                  {% endif %}
+                </div>
               </div>
             </div>
           {% endfor %}

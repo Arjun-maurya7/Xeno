@@ -1,15 +1,21 @@
 import google.generativeai as genai
 import os
 import json
+from dotenv import load_dotenv
 
-api_key = os.environ.get("GEMINI_API_KEY", "")
-genai.configure(api_key=api_key)
+load_dotenv()
+
+# We fetch the API key dynamically or read it from environment variables
+def get_api_key():
+    return os.environ.get("GEMINI_API_KEY", "")
 
 def parse_segment_prompt(prompt: str) -> dict:
-    if not api_key:
+    key = get_api_key()
+    if not key:
         raise ValueError("Gemini API key is not configured. Please set GEMINI_API_KEY in your .env file.")
+    genai.configure(api_key=key)
     
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-flash-latest")
     system_prompt = (
         "You are an AI assistant that extracts customer segmentation criteria from natural language prompts.\n"
         "Your output must be a valid JSON object only, with no markdown formatting (like ```json), no explanations, and no surrounding text.\n"
@@ -28,10 +34,12 @@ def parse_segment_prompt(prompt: str) -> dict:
     return json.loads(response_text)
 
 def generate_campaign_message(prompt: str) -> str:
-    if not api_key:
+    key = get_api_key()
+    if not key:
         raise ValueError("Gemini API key is not configured. Please set GEMINI_API_KEY in your .env file.")
+    genai.configure(api_key=key)
         
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-flash-latest")
     ai_prompt = (
         f"Generate a campaign message based on this prompt: '{prompt}'.\n"
         "Keep it short, professional, and copy-focused. Return only the campaign message body without any introductory text, markdown formatting, or greetings like 'Here is the campaign:'."
@@ -43,11 +51,13 @@ def generate_campaign_message(prompt: str) -> str:
     return message_text
 
 def generate_customer_persona(customer_name: str, city: str, total_spend: float, total_orders: int, orders: list) -> str:
-    if not api_key:
+    key = get_api_key()
+    if not key:
         return f"{customer_name} is a customer based in {city} who has placed {total_orders} order(s) with a total lifetime spend of ${total_spend:.2f}."
+    genai.configure(api_key=key)
         
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-flash-latest")
         orders_desc = ", ".join([f"${o.amount} on {o.order_date}" for o in orders[:5]])
         ai_prompt = (
             f"Generate a short buying persona summary for customer '{customer_name}' from '{city}'.\n"

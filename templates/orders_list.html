@@ -26,9 +26,15 @@
     <div class="container">
       <div class="header-section">
         <h1>Orders</h1>
-        <a href="/orders/add" class="btn">Add Order</a>
+        <div style="display:flex;gap:10px;">
+          <a href="/orders/import" class="btn btn-secondary"
+             style="border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.05);color:#60a5fa;
+                    text-decoration:none;padding:10px 15px;border-radius:6px;font-weight:500;font-size:.9em;
+                    display:flex;align-items:center;">Import CSV</a>
+          <a href="/orders/add" class="btn">Add Order</a>
+        </div>
       </div>
-      
+
       {% if orders %}
       <table>
         <thead>
@@ -42,17 +48,17 @@
         <tbody>
           {% for o in orders %}
           <tr>
-            <td>#{{ o.id }}</td>
+            <td style="color:var(--text-muted);font-weight:600;">#{{ o.id }}</td>
             <td>
               {% if o.customer %}
                 <a href="/customers/{{ o.customer.id }}" class="customer-link"><strong>{{ o.customer.name }}</strong></a><br>
-                <small style="color: var(--text-muted);">{{ o.customer.email }}</small>
+                <small style="color:var(--text-muted);">{{ o.customer.email }}</small>
               {% else %}
-                <span style="color: red;">Unknown Customer (ID: {{ o.customer_id }})</span>
+                <span style="color:#ef4444;">Unknown Customer (ID: {{ o.customer_id }})</span>
               {% endif %}
             </td>
-            <td>${{ "{:.2f}".format(o.amount) }}</td>
-            <td>{{ o.order_date.strftime('%Y-%m-%d') if o.order_date.strftime is defined else o.order_date }}</td>
+            <td class="text-success font-semibold">${{ "{:.2f}".format(o.amount) }}</td>
+            <td class="text-muted">{{ o.order_date }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -60,8 +66,11 @@
       {% else %}
       <div class="empty-state">
         <h3>No orders yet</h3>
-        <p>Start tracking sales by registering your first order.</p>
-        <a href="/orders/add" class="btn">Add Order</a>
+        <p>Start tracking sales by registering your first order or importing a CSV.</p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:1rem;">
+          <a href="/orders/import" class="btn btn-secondary" style="border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.05);color:#60a5fa;text-decoration:none;padding:10px 15px;border-radius:6px;font-weight:500;">Import CSV</a>
+          <a href="/orders/add" class="btn">Add Order</a>
+        </div>
       </div>
       {% endif %}
     </div>

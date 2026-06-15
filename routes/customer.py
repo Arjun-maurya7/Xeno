@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Form
+from fastapi import APIRouter, Depends, HTTPException, Request, Form, File, UploadFile
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
@@ -6,6 +6,8 @@ from model import Customer as DBCustomer
 from schemas.customer import Customer, CustomerCreate
 from services.segment_service import get_segmented_customers
 from routes.utils import templates
+import csv
+import io
 
 router = APIRouter()
 
@@ -101,6 +103,9 @@ def customer_detail_page(id: int, request: Request, db: Session = Depends(get_db
     total_orders = len(orders)
     last_purchase = orders[0].order_date.strftime('%Y-%m-%d') if orders else "Never"
     
+    from model import CommunicationLog as DBCommunicationLog
+    comm_logs = db.query(DBCommunicationLog).filter(DBCommunicationLog.customer_id == id).order_by(DBCommunicationLog.updated_at.desc()).all()
+    
     from services.ai_service import generate_customer_persona
     persona = generate_customer_persona(db_customer.name, db_customer.city, total_spend, total_orders, orders)
     
@@ -113,7 +118,76 @@ def customer_detail_page(id: int, request: Request, db: Session = Depends(get_db
             "total_spend": total_spend,
             "total_orders": total_orders,
             "last_purchase": last_purchase,
-            "persona": persona
+            "persona": persona,
+            "comm_logs": comm_logs
         }
     )
+
+@router.get("/customers/import")
+def import_customers_page(request: Request):
+    return templates.TemplateResponse(
+        "import_customers.html", 
+        {"request": request, "success": None, "skipped": None, "error": None}
+    )
+
+@router.post("/customers/import")
+async def handle_import_customers(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    if not file.filename.endswith('.csv'):
+        return templates.TemplateResponse(
+            "import_customers.html",
+            {"request": request, "success": None, "skipped": None, "error": "Invalid file extension. Please upload a .csv file."}
+        )
+    try:
+        content = await file.read()
+        text_data = content.decode("utf-8")
+        csv_file = io.StringIO(text_data)
+        reader = csv.DictReader(csv_file)
+        
+        required_cols = {"name", "email", "phone", "city"}
+        if not required_cols.issubset(set(reader.fieldnames or [])):
+            return templates.TemplateResponse(
+                "import_customers.html",
+                {"request": request, "success": None, "skipped": None, "error": "CSV is missing one or more required columns: name, email, phone, city."}
+            )
+        
+        success_count = 0
+        skipped_count = 0
+        
+        for row in reader:
+            name = row.get("name", "").strip()
+            email = row.get("email", "").strip()
+            phone = row.get("phone", "").strip()
+            city = row.get("city", "").strip()
+            
+            if not name or not email:
+                continue
+                
+            exists = db.query(DBCustomer).filter(DBCustomer.email == email).first()
+            if exists:
+                skipped_count += 1
+                continue
+            
+            db_customer = DBCustomer(name=name, email=email, phone=phone, city=city)
+            db.add(db_customer)
+            success_count += 1
+            
+        db.commit()
+        return templates.TemplateResponse(
+            "import_customers.html",
+            {
+                "request": request, 
+                "success": f"Successfully imported {success_count} customer(s).",
+                "skipped": f"Skipped {skipped_count} duplicate email(s)." if skipped_count > 0 else None,
+                "error": None
+            }
+        )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "import_customers.html",
+            {"request": request, "success": None, "skipped": None, "error": f"Failed to parse CSV: {str(e)}"}
+        )
 

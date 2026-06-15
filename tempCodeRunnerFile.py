@@ -1,1 +1,0 @@
-"data": customer.model_dump()

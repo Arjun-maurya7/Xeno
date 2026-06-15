@@ -22,9 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/campaigns/generate-message', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
           },
-          body: new URLSearchParams({ prompt })
+          body: JSON.stringify({ prompt })
         });
 
         if (!res.ok) {

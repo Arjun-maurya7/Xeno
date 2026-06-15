@@ -8,6 +8,35 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+      .status-badge {
+        display: inline-block; padding: .2rem .65rem;
+        font-size: .72rem; font-weight: 700; border-radius: 99px;
+        text-transform: uppercase; letter-spacing: .06em;
+      }
+      .status-draft     { background: rgba(148,163,184,.1); color: #94a3b8; }
+      .status-sending   { background: rgba(245,158,11,.12); color: #fbbf24; animation: statusPulse 1.5s ease-in-out infinite; }
+      .status-completed { background: rgba(16,185,129,.12); color: #34d399; }
+
+      @keyframes statusPulse { 0%,100%{opacity:.7;} 50%{opacity:1;} }
+
+      .stat-bar-wrap { background: rgba(255,255,255,.05); border-radius: 4px; height: 4px; margin-top: 4px; width: 100%; }
+      .stat-bar      { height: 4px; border-radius: 4px; transition: width .5s ease; }
+
+      .launch-btn {
+        background: linear-gradient(135deg,#10b981,#059669);
+        color: white; border: none; padding: .45rem 1rem;
+        font-size: .82rem; font-weight: 600; border-radius: 8px;
+        cursor: pointer; transition: all .2s ease; white-space: nowrap;
+      }
+      .launch-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,.4); }
+      .launch-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+      .stats-row { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+      .stat-item { text-align: center; }
+      .stat-num  { font-size: 1.15rem; font-weight: 800; }
+      .stat-lbl  { font-size: .68rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: .07em; }
+    </style>
   </head>
   <body>
     <nav class="navbar">
@@ -30,42 +59,175 @@
       </div>
 
       {% if campaigns %}
-      <table>
-        <thead>
-          <tr>
-            <th>Campaign Name</th>
-            <th>Target Audience</th>
-            <th>Channel</th>
-            <th>Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for campaign in campaigns %}
-          <tr>
-            <td><strong>{{ campaign.name }}</strong></td>
-            <td>{{ campaign.audience }}</td>
-            <td>
-              {% if campaign.channel.lower() == 'email' %}
-              <span class="channel-badge channel-email">Email</span>
-              {% elif campaign.channel.lower() == 'sms' %}
-              <span class="channel-badge channel-sms">SMS</span>
-              {% elif campaign.channel.lower() == 'whatsapp' %}
-              <span class="channel-badge channel-whatsapp">WhatsApp</span>
+      <div class="grid" style="grid-template-columns: 1fr; gap: 1.25rem;">
+        {% for campaign in campaigns %}
+        <div class="card" id="campaign-card-{{ campaign.id }}" style="margin-bottom:0; padding: 1.5rem 2rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+
+            <!-- Left: Name, audience, channel, message -->
+            <div style="flex:1; min-width:200px;">
+              <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:.5rem;">
+                <span class="font-bold" style="font-size:1.1rem;">{{ campaign.name }}</span>
+
+                {% set s = campaign.status or 'draft' %}
+                <span class="status-badge status-{{ s }}" id="status-{{ campaign.id }}">{{ s }}</span>
+
+                {% if campaign.channel.lower() == 'email' %}
+                  <span class="channel-badge channel-email">Email</span>
+                {% elif campaign.channel.lower() == 'sms' %}
+                  <span class="channel-badge channel-sms">SMS</span>
+                {% elif campaign.channel.lower() == 'whatsapp' %}
+                  <span class="channel-badge channel-whatsapp">WhatsApp</span>
+                {% else %}
+                  <span class="channel-badge">{{ campaign.channel }}</span>
+                {% endif %}
+              </div>
+              <div style="font-size:.82rem; color:var(--text-muted); margin-bottom:.75rem;">
+                <strong>Audience:</strong> {{ campaign.audience }}
+              </div>
+              <div style="font-size:.88rem; color:#cbd5e1; background:rgba(255,255,255,.03); border:1px solid var(--border-color); border-radius:8px; padding:.6rem .9rem; max-width:520px;">
+                {{ campaign.message }}
+              </div>
+            </div>
+
+            <!-- Right: Stats + Launch button -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:1rem;">
+              <div class="stats-row" id="stats-{{ campaign.id }}">
+                <div class="stat-item">
+                  <div class="stat-num text-muted" id="sent-{{ campaign.id }}">{{ campaign.sent or 0 }}</div>
+                  <div class="stat-lbl">Sent</div>
+                  <div class="stat-bar-wrap"><div class="stat-bar" style="background:#3b82f6; width:100%;"></div></div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-num text-primary" id="delivered-{{ campaign.id }}">{{ campaign.delivered or 0 }}</div>
+                  <div class="stat-lbl">Delivered</div>
+                  <div class="stat-bar-wrap">
+                    <div class="stat-bar" id="bar-delivered-{{ campaign.id }}"
+                         style="background:#3b82f6; width:{% if campaign.sent %}{{ ((campaign.delivered or 0) / campaign.sent * 100)|round }}%{% else %}0%{% endif %};"></div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-num text-success" id="opened-{{ campaign.id }}">{{ campaign.opened or 0 }}</div>
+                  <div class="stat-lbl">Opened</div>
+                  <div class="stat-bar-wrap">
+                    <div class="stat-bar" id="bar-opened-{{ campaign.id }}"
+                         style="background:#10b981; width:{% if campaign.sent %}{{ ((campaign.opened or 0) / campaign.sent * 100)|round }}%{% else %}0%{% endif %};"></div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-num text-warning" id="clicked-{{ campaign.id }}">{{ campaign.clicked or 0 }}</div>
+                  <div class="stat-lbl">Clicked</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-num" style="color:#ef4444;" id="failed-{{ campaign.id }}">{{ campaign.failed or 0 }}</div>
+                  <div class="stat-lbl">Failed</div>
+                </div>
+              </div>
+
+              {% set s = campaign.status or 'draft' %}
+              {% if s == 'draft' %}
+              <button class="launch-btn" id="launch-btn-{{ campaign.id }}"
+                      onclick="launchCampaign({{ campaign.id }})">
+                🚀 Launch Campaign
+              </button>
+              {% elif s == 'sending' %}
+              <button class="launch-btn" disabled>⏳ Sending…</button>
               {% else %}
-              <span class="channel-badge">{{ campaign.channel }}</span>
+              <button class="launch-btn" disabled style="background:rgba(16,185,129,.15);color:#34d399;">✅ Completed</button>
               {% endif %}
-            </td>
-            <td>{{ campaign.message }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+            </div>
+
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
       {% else %}
       <div class="empty-state">
-        <p>No campaigns have been created yet.</p>
+        <p style="margin-bottom:1rem;">No campaigns have been created yet.</p>
         <a href="/campaigns/create" class="btn">Create Your First Campaign</a>
       </div>
       {% endif %}
     </div>
+
+    <script>
+      // ── Launch a campaign via the API ──────────────────────────────────────
+      async function launchCampaign(id) {
+        const btn = document.getElementById(`launch-btn-${id}`);
+        btn.disabled = true;
+        btn.textContent = '⏳ Launching…';
+
+        try {
+          const res = await fetch(`/campaigns/${id}/launch`, { method: 'POST' });
+          const data = await res.json();
+
+          if (res.ok) {
+            document.getElementById(`status-${id}`).textContent = 'sending';
+            document.getElementById(`status-${id}`).className = 'status-badge status-sending';
+            btn.textContent = '⏳ Sending…';
+            // Start polling for live stat updates
+            pollStats(id);
+          } else {
+            alert(data.message || 'Failed to launch campaign.');
+            btn.disabled = false;
+            btn.textContent = '🚀 Launch Campaign';
+          }
+        } catch (err) {
+          alert('Network error. Please try again.');
+          btn.disabled = false;
+          btn.textContent = '🚀 Launch Campaign';
+        }
+      }
+
+      // ── Poll campaign stats every 2 seconds until completed ───────────────
+      function pollStats(id) {
+        const interval = setInterval(async () => {
+          try {
+            const res  = await fetch(`/campaigns/${id}/stats`);
+            const data = await res.json();
+
+            document.getElementById(`sent-${id}`).textContent      = data.sent;
+            document.getElementById(`delivered-${id}`).textContent = data.delivered;
+            document.getElementById(`opened-${id}`).textContent    = data.opened;
+            document.getElementById(`clicked-${id}`).textContent   = data.clicked;
+            document.getElementById(`failed-${id}`).textContent    = data.failed;
+
+            // Update progress bars
+            if (data.sent > 0) {
+              document.getElementById(`bar-delivered-${id}`).style.width =
+                Math.round(data.delivered / data.sent * 100) + '%';
+              document.getElementById(`bar-opened-${id}`).style.width =
+                Math.round(data.opened / data.sent * 100) + '%';
+            }
+
+            const statusEl = document.getElementById(`status-${id}`);
+            statusEl.textContent = data.status;
+            statusEl.className   = `status-badge status-${data.status}`;
+
+            if (data.status === 'completed') {
+              clearInterval(interval);
+              const btn = document.getElementById(`launch-btn-${id}`);
+              if (btn) {
+                btn.textContent = '✅ Completed';
+                btn.style.background = 'rgba(16,185,129,.15)';
+                btn.style.color = '#34d399';
+              }
+            }
+          } catch (e) {
+            clearInterval(interval);
+          }
+        }, 2000);
+      }
+
+      // ── Auto-poll any campaigns currently in "sending" state ─────────────
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.status-badge').forEach(el => {
+          if (el.textContent.trim() === 'sending') {
+            const id = el.id.replace('status-', '');
+            pollStats(parseInt(id));
+          }
+        });
+      });
+    </script>
   </body>
 </html>

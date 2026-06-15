@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from services.ai_service import parse_segment_prompt, generate_campaign_message, api_key
+from services.ai_service import parse_segment_prompt, generate_campaign_message, get_api_key
 from services.segment_service import get_segmented_customers
 from routes.utils import templates
 
@@ -22,7 +22,7 @@ def ai_segment_page(request: Request):
 
 @router.post("/ai-segment")
 def handle_ai_segment(request: Request, prompt: str = Form(...), db: Session = Depends(get_db)):
-    if not api_key:
+    if not get_api_key():
         return templates.TemplateResponse(
             "ai_segment.html",
             {

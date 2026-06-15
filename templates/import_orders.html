@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Import Orders - Xeno CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">Xeno CRM</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/customers" class="nav-link">Customers</a>
+        <a href="/orders" class="nav-link active">Orders</a>
+        <a href="/segments" class="nav-link">Segments</a>
+        <a href="/campaigns" class="nav-link">Campaigns</a>
+        <a href="/analytics" class="nav-link">Analytics</a>
+        <a href="/ai-segment" class="nav-link">AI Segment</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header-section">
+        <h1>Import Orders via CSV</h1>
+        <a href="/orders" class="btn btn-secondary">Back to Orders</a>
+      </div>
+
+      {% if error %}
+      <div style="margin-bottom:20px;padding:15px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;color:#fca5a5;">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      {% if success %}
+      <div style="margin-bottom:20px;padding:15px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;color:#a7f3d0;">
+        <strong>Success:</strong> {{ success }}
+        {% if skipped %}<br><span style="font-size:.9em;opacity:.9;">{{ skipped }}</span>{% endif %}
+      </div>
+      {% endif %}
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+        <div class="card">
+          <form method="post" action="/orders/import" enctype="multipart/form-data">
+            <div class="form-group" style="margin-bottom:25px;">
+              <label for="csv_file" style="display:block;margin-bottom:10px;font-weight:500;">Select CSV File</label>
+              <input type="file" id="csv_file" name="file" accept=".csv" required
+                style="width:100%;padding:15px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#cbd5e1;cursor:pointer;" />
+            </div>
+            <button type="submit" class="btn" style="width:100%;">Upload & Import Orders</button>
+          </form>
+        </div>
+
+        <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <h3 style="margin-bottom:15px;color:#cbd5e1;font-weight:600;">CSV Format Guide</h3>
+            <p style="font-size:.9em;color:#94a3b8;line-height:1.6;margin-bottom:15px;">
+              Orders are linked to existing customers by their email address.
+            </p>
+            <code style="display:block;padding:12px;background:#0f172a;border-radius:6px;font-family:monospace;font-size:.85em;color:#3b82f6;margin-bottom:15px;">
+              customer_email,amount,order_date
+            </code>
+            <ul style="font-size:.85em;color:#94a3b8;padding-left:20px;line-height:1.7;margin-bottom:15px;">
+              <li><strong>customer_email</strong>: Must match an existing customer's email</li>
+              <li><strong>amount</strong>: Order value (e.g. 1499.00)</li>
+              <li><strong>order_date</strong>: Date in <code>YYYY-MM-DD</code> format</li>
+            </ul>
+            <p style="font-size:.82em;color:#64748b;">Rows with unknown emails or bad formats will be skipped.</p>
+          </div>
+          <a href="/static/sample_orders.csv" download
+             style="text-align:center;display:block;width:100%;border:1px dashed rgba(59,130,246,0.4);background:rgba(59,130,246,0.05);color:#60a5fa;text-decoration:none;padding:10px;border-radius:8px;margin-top:16px;font-weight:500;">
+            Download Sample CSV
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
